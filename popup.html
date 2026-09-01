@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perf Profiler</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-left">
+        <svg class="logo" viewBox="0 0 24 24" width="24" height="24">
+          <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
+        </svg>
+        <h1 class="header-title">Perf Profiler</h1>
+      </div>
+      <div class="header-actions">
+        <button id="btn-theme" class="icon-btn" title="Toggle theme">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>
+        </button>
+        <button id="btn-export" class="icon-btn" title="Export report">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        </button>
+        <button id="btn-copy" class="icon-btn" title="Copy summary">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="toolbar">
+      <button id="btn-analyze" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+        Analyze Page
+      </button>
+      <button id="btn-compare" class="btn btn-secondary" disabled>Compare</button>
+      <div class="url-display" id="url-display">No page analyzed</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="overview">Overview</button>
+      <button class="tab" data-tab="resources">Resources</button>
+      <button class="tab" data-tab="waterfall">Waterfall</button>
+      <button class="tab" data-tab="dom">DOM</button>
+      <button class="tab" data-tab="history">History</button>
+    </div>
+
+    <main class="content">
+      <!-- Overview Tab -->
+      <div class="tab-panel active" id="panel-overview">
+        <div class="score-section">
+          <div class="score-circle" id="score-circle">
+            <svg viewBox="0 0 120 120">
+              <circle class="score-bg" cx="60" cy="60" r="54"/>
+              <circle class="score-fill" id="score-fill" cx="60" cy="60" r="54"/>
+            </svg>
+            <div class="score-value" id="score-value">--</div>
+            <div class="score-label">Performance Score</div>
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card" data-metric="lcp">
+            <div class="metric-header">
+              <span class="metric-name">LCP</span>
+              <span class="metric-badge" id="badge-lcp">--</span>
+            </div>
+            <div class="metric-value" id="value-lcp">--</div>
+            <div class="metric-desc">Largest Contentful Paint</div>
+          </div>
+          <div class="metric-card" data-metric="inp">
+            <div class="metric-header">
+              <span class="metric-name">INP</span>
+              <span class="metric-badge" id="badge-inp">--</span>
+            </div>
+            <div class="metric-value" id="value-inp">--</div>
+            <div class="metric-desc">Interaction to Next Paint</div>
+          </div>
+          <div class="metric-card" data-metric="cls">
+            <div class="metric-header">
+              <span class="metric-name">CLS</span>
+              <span class="metric-badge" id="badge-cls">--</span>
+            </div>
+            <div class="metric-value" id="value-cls">--</div>
+            <div class="metric-desc">Cumulative Layout Shift</div>
+          </div>
+          <div class="metric-card" data-metric="fcp">
+            <div class="metric-header">
+              <span class="metric-name">FCP</span>
+              <span class="metric-badge" id="badge-fcp">--</span>
+            </div>
+            <div class="metric-value" id="value-fcp">--</div>
+            <div class="metric-desc">First Contentful Paint</div>
+          </div>
+          <div class="metric-card" data-metric="tti">
+            <div class="metric-header">
+              <span class="metric-name">TTI</span>
+              <span class="metric-badge" id="badge-tti">--</span>
+            </div>
+            <div class="metric-value" id="value-tti">--</div>
+            <div class="metric-desc">Time to Interactive</div>
+          </div>
+          <div class="metric-card" data-metric="tbt">
+            <div class="metric-header">
+              <span class="metric-name">TBT</span>
+              <span class="metric-badge" id="badge-tbt">--</span>
+            </div>
+            <div class="metric-value" id="value-tbt">--</div>
+            <div class="metric-desc">Total Blocking Time</div>
+          </div>
+          <div class="metric-card" data-metric="si">
+            <div class="metric-header">
+              <span class="metric-name">SI</span>
+              <span class="metric-badge" id="badge-si">--</span>
+            </div>
+            <div class="metric-value" id="value-si">--</div>
+            <div class="metric-desc">Speed Index</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2 class="section-title">Network Summary</h2>
+          <div class="network-summary">
+            <div class="net-stat">
+              <span class="net-stat-value" id="net-requests">--</span>
+              <span class="net-stat-label">Requests</span>
+            </div>
+            <div class="net-stat">
+              <span class="net-stat-value" id="net-transfer">--</span>
+              <span class="net-stat-label">Transfer Size</span>
+            </div>
+            <div class="net-stat">
+              <span class="net-stat-value" id="net-resources">--</span>
+              <span class="net-stat-label">Resources</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2 class="section-title">Recommendations</h2>
+          <div id="recommendations" class="recommendations-list">
+            <p class="empty-state">Run analysis to see recommendations</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resources Tab -->
+      <div class="tab-panel" id="panel-resources">
+        <div class="section">
+          <h2 class="section-title">Resource Breakdown</h2>
+          <div class="chart-container">
+            <canvas id="pie-chart" width="280" height="200"></canvas>
+            <div id="pie-legend" class="pie-legend"></div>
+          </div>
+        </div>
+        <div class="section">
+          <h2 class="section-title">Largest Resources</h2>
+          <div class="table-container">
+            <table id="resources-table" class="data-table">
+              <thead>
+                <tr>
+                  <th>Resource</th>
+                  <th>Type</th>
+                  <th>Size</th>
+                  <th>Time</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="section">
+          <h2 class="section-title">Render-Blocking Resources</h2>
+          <div id="render-blocking" class="blocking-list">
+            <p class="empty-state">No render-blocking resources detected</p>
+          </div>
+        </div>
+        <div class="section">
+          <h2 class="section-title">Third-Party Scripts</h2>
+          <div id="third-party" class="third-party-list">
+            <p class="empty-state">No third-party scripts detected</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Waterfall Tab -->
+      <div class="tab-panel" id="panel-waterfall">
+        <div class="waterfall-controls">
+          <label class="control-label">
+            Filter:
+            <select id="waterfall-filter">
+              <option value="all">All</option>
+              <option value="js">JavaScript</option>
+              <option value="css">CSS</option>
+              <option value="image">Images</option>
+              <option value="font">Fonts</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <label class="control-label">
+            <input type="checkbox" id="waterfall-blocked" checked> Show blocked time
+          </label>
+        </div>
+        <div class="waterfall-container" id="waterfall-container">
+          <canvas id="waterfall-canvas"></canvas>
+        </div>
+        <div class="waterfall-tooltip" id="waterfall-tooltip"></div>
+      </div>
+
+      <!-- DOM Tab -->
+      <div class="tab-panel" id="panel-dom">
+        <div class="dom-stats-grid">
+          <div class="dom-stat-card">
+            <div class="dom-stat-value" id="dom-elements">--</div>
+            <div class="dom-stat-label">Total Elements</div>
+          </div>
+          <div class="dom-stat-card">
+            <div class="dom-stat-value" id="dom-depth">--</div>
+            <div class="dom-stat-label">Max Depth</div>
+          </div>
+          <div class="dom-stat-card">
+            <div class="dom-stat-value" id="dom-classes">--</div>
+            <div class="dom-stat-label">Unique Classes</div>
+          </div>
+          <div class="dom-stat-card">
+            <div class="dom-stat-value" id="dom-ids">--</div>
+            <div class="dom-stat-label">IDs Used</div>
+          </div>
+        </div>
+        <div class="section">
+          <h2 class="section-title">DOM Distribution</h2>
+          <div class="chart-container">
+            <canvas id="dom-chart" width="280" height="200"></canvas>
+          </div>
+        </div>
+        <div class="section">
+          <h2 class="section-title">Memory Usage</h2>
+          <div class="memory-stats">
+            <div class="mem-stat">
+              <span class="mem-stat-label">Used JS Heap</span>
+              <span class="mem-stat-value" id="mem-heap">--</span>
+            </div>
+            <div class="mem-stat">
+              <span class="mem-stat-label">Total JS Heap</span>
+              <span class="mem-stat-value" id="mem-total">--</span>
+            </div>
+            <div class="mem-stat">
+              <span class="mem-stat-label">Document Size</span>
+              <span class="mem-stat-value" id="mem-doc">--</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- History Tab -->
+      <div class="tab-panel" id="panel-history">
+        <div class="section">
+          <h2 class="section-title">Performance Over Time</h2>
+          <div class="chart-container">
+            <canvas id="history-chart" width="340" height="180"></canvas>
+          </div>
+        </div>
+        <div class="section">
+          <h2 class="section-title">Previous Scans</h2>
+          <div id="history-list" class="history-list">
+            <p class="empty-state">No previous scans</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <span>Perf Profiler v1.0.0</span>
+      <button id="btn-clear-history" class="btn-text">Clear History</button>
+    </footer>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
